@@ -1,0 +1,84 @@
+{
+  "info": {
+    "name": "Job App API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "d7f2f1f0-aaaa-bbbb-cccc-000000000001"
+  },
+  "item": [
+    {
+      "name": "Auth - Register",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] },
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"user@example.com\",\n  \"name\": \"Test User\"\n}" }
+      }
+    },
+    {
+      "name": "Auth - Verify OTP",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{baseUrl}}/api/auth/verify-otp", "host": ["{{baseUrl}}"], "path": ["api", "auth", "verify-otp"] },
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"user@example.com\",\n  \"otp\": \"123456\",\n  \"password\": \"StrongP@ss1\"\n}" }
+      }
+    },
+    {
+      "name": "Auth - Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] },
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"StrongP@ss1\"\n}" }
+      }
+    },
+    {
+      "name": "Recruiter - Post Job",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{recruiterToken}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/api/recruiter/jobs", "host": ["{{baseUrl}}"], "path": ["api", "recruiter", "jobs"] },
+        "body": { "mode": "raw", "raw": "{\n  \"title\": \"Senior Backend Engineer\",\n  \"description\": \"Build APIs\",\n  \"requiredSkills\": [\"node\", \"mongodb\"],\n  \"experienceMin\": 3,\n  \"experienceMax\": 7,\n  \"location\": \"Remote\",\n  \"remote\": true\n}" }
+      }
+    },
+    {
+      "name": "Jobs - Apply to Job",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{userToken}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/api/jobs/{{jobId}}/apply", "host": ["{{baseUrl}}"], "path": ["api", "jobs", "{{jobId}}", "apply"] },
+        "body": { "mode": "raw", "raw": "{\n  \"resumeUrl\": \"https://files.example.com/resume.pdf\",\n  \"coverLetter\": \"I am interested.\"\n}" }
+      }
+    },
+    {
+      "name": "Recruiter - Applicants",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{recruiterToken}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/api/recruiter/job/{{jobId}}/applicants", "host": ["{{baseUrl}}"], "path": ["api", "recruiter", "job", "{{jobId}}", "applicants"] }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "recruiterToken", "value": "" },
+    { "key": "userToken", "value": "" },
+    { "key": "jobId", "value": "" }
+  ]
+}
+
+
