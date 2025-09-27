@@ -33,18 +33,51 @@ app.use(helmet({
 }));
 
 // CORS configuration
+const corsOriginsFromEnv = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : [];
 const allowedOrigins = [
   'http://localhost:3000', 
   'http://localhost:5173',
+  'http://localhost:4173', // Vite preview port
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:4173',
   'https://job-portal-git-main-kiran-kattis-projects.vercel.app',
+  'https://job-portal-git-main-kiran-kattis-projects.vercel.app/',
   process.env.FRONTEND_URL || 'https://job-app-client.vercel.app',
-  process.env.CLIENT_URL
+  process.env.CLIENT_URL,
+  ...corsOriginsFromEnv
 ].filter(Boolean);
 
 app.use(cors({
-  origin: allowedOrigins,
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Allow all localhost origins in development or when CORS_ORIGIN includes localhost
+    const isLocalhost = origin.includes('localhost') || origin.includes('127.0.0.1');
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const hasLocalhostInCorsOrigin = process.env.CORS_ORIGIN && process.env.CORS_ORIGIN.includes('localhost');
+    
+    if (isLocalhost && (isDevelopment || hasLocalhostInCorsOrigin)) {
+      return callback(null, true);
+    }
+    
+    // Check if origin is in allowed list
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      return callback(null, true);
+    }
+    
+    // Log the blocked origin and allowed origins for debugging
+    console.log('CORS blocked origin:', origin);
+    console.log('Allowed origins:', allowedOrigins);
+    console.log('NODE_ENV:', process.env.NODE_ENV);
+    console.log('CORS_ORIGIN:', process.env.CORS_ORIGIN);
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 // Compression middleware
