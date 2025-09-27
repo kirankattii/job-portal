@@ -24,8 +24,10 @@ export default function AdminJobs() {
       })
       setJobs(res.data.jobs)
       setPagination(res.data.pagination)
-    } catch (e) {
-      toast.error('Failed to load jobs')
+    } catch (error) {
+      console.error('Failed to load jobs:', error)
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to load jobs'
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -39,8 +41,10 @@ export default function AdminJobs() {
       await adminService.updateJobStatus(job._id, { status: next })
       toast.success(`Job set to ${next}`)
       fetchJobs()
-    } catch {
-      toast.error('Failed to update job status')
+    } catch (error) {
+      console.error('Failed to update job status:', error)
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to update job status'
+      toast.error(errorMessage)
     }
   }
 

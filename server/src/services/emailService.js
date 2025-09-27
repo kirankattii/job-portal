@@ -198,6 +198,18 @@ const sendApplicationConfirmation = async (user, job) => {
     
     const subject = `Application Confirmation - ${job.title} at ${job.company}`;
     
+    const skillsList = job.requiredSkills && job.requiredSkills.length > 0 
+      ? job.requiredSkills.join(', ') 
+      : 'Not specified';
+    
+    const experienceRange = job.experienceMin !== undefined && job.experienceMax !== undefined
+      ? `${job.experienceMin} - ${job.experienceMax} years`
+      : 'Not specified';
+    
+    const salaryRange = job.salaryRange && job.salaryRange.min && job.salaryRange.max
+      ? `$${job.salaryRange.min.toLocaleString()} - $${job.salaryRange.max.toLocaleString()}`
+      : 'Not specified';
+
     const textContent = `
 Hello ${user.firstName},
 
@@ -208,7 +220,10 @@ Your application has been received and is being reviewed by our team. We will ge
 Job Details:
 - Position: ${job.title}
 - Company: ${job.company}
-- Location: ${job.location}
+- Location: ${job.location}${job.remote ? ' (Remote)' : ''}
+- Experience Required: ${experienceRange}
+- Salary Range: ${salaryRange}
+- Required Skills: ${skillsList}
 - Application Date: ${new Date().toLocaleDateString()}
 
 Best regards,
@@ -228,6 +243,7 @@ Job Portal Team
         .header { text-align: center; margin-bottom: 30px; }
         .logo { font-size: 24px; font-weight: bold; color: #2563eb; }
         .job-details { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2563eb; }
+        .skills { background: #f3f4f6; padding: 10px; border-radius: 6px; margin: 10px 0; }
         .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
     </style>
 </head>
@@ -249,9 +265,16 @@ Job Portal Team
             <ul>
                 <li><strong>Position:</strong> ${job.title}</li>
                 <li><strong>Company:</strong> ${job.company}</li>
-                <li><strong>Location:</strong> ${job.location}</li>
+                <li><strong>Location:</strong> ${job.location}${job.remote ? ' (Remote)' : ''}</li>
+                <li><strong>Experience Required:</strong> ${experienceRange}</li>
+                <li><strong>Salary Range:</strong> ${salaryRange}</li>
                 <li><strong>Application Date:</strong> ${new Date().toLocaleDateString()}</li>
             </ul>
+            
+            <div class="skills">
+                <strong>Required Skills:</strong><br>
+                ${skillsList}
+            </div>
         </div>
         
         <p>Best regards,<br>Job Portal Team</p>
@@ -382,6 +405,325 @@ Job Portal Team
 };
 
 /**
+ * Send interactive profile completion email
+ * @param {Object} user - User object
+ * @param {string} updateToken - Token for profile update
+ */
+const sendInteractiveProfileCompletionEmail = async (user, updateToken) => {
+  try {
+    const transporter = createTransporter();
+    
+    const subject = 'Complete Your Profile - Interactive Update';
+    const updateUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/profile/update/${updateToken}`;
+    
+    const textContent = `
+Hello ${user.firstName},
+
+Your profile is incomplete and needs to be updated to help recruiters find you better.
+
+Current profile completion: ${user.profileCompletion || 0}%
+
+Please complete your profile by visiting: ${updateUrl}
+
+Best regards,
+Job Portal Team
+    `.trim();
+
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Your Profile</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .container { background: #f9f9f9; padding: 30px; border-radius: 10px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .logo { font-size: 24px; font-weight: bold; color: #2563eb; }
+        .progress-bar { background: #e5e7eb; height: 20px; border-radius: 10px; margin: 20px 0; }
+        .progress-fill { background: #2563eb; height: 100%; border-radius: 10px; width: ${user.profileCompletion || 0}%; }
+        .update-button { background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin: 20px 0; }
+        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+        .highlight { background: #fef3c7; border: 1px solid #f59e0b; padding: 15px; border-radius: 8px; margin: 20px 0; }
+        .form-section { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #e5e7eb; }
+        .form-group { margin-bottom: 15px; }
+        .form-label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-input { width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box; }
+        .form-textarea { width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; min-height: 80px; box-sizing: border-box; }
+        .save-button { background: #10b981; color: white; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; }
+        .quick-update { background: #f0f9ff; border: 1px solid #0ea5e9; padding: 15px; border-radius: 8px; margin: 20px 0; }
+        .quick-links { display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; }
+        .quick-link { background: #0ea5e9; color: white; padding: 8px 16px; text-decoration: none; border-radius: 4px; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">Job Portal</div>
+            <h1>Complete Your Profile</h1>
+        </div>
+        
+        <p>Hello ${user.firstName},</p>
+        
+        <p>Your profile is incomplete and needs to be updated to help recruiters find you better.</p>
+        
+        <div>
+            <p><strong>Your current profile completion:</strong></p>
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+            <p>${user.profileCompletion || 0}% Complete</p>
+        </div>
+        
+        <div class="highlight">
+            <strong>What's missing?</strong><br>
+            • Skills and experience<br>
+            • Resume upload<br>
+            • Professional details<br>
+            • Education information
+        </div>
+        
+        <!-- Interactive Profile Form -->
+        <div class="form-section">
+            <h3>📝 Update Your Profile</h3>
+            <p style="color: #666; font-size: 14px; margin-bottom: 20px;">
+                <strong>Note:</strong> Due to email client security restrictions, forms in emails may not work. 
+                Please use the quick update links below or click "Complete Your Profile" button.
+            </p>
+            
+            <!-- Quick Update Buttons -->
+            <div style="margin-bottom: 20px;">
+                <h4 style="margin-bottom: 10px; color: #2563eb;">🚀 Quick Updates (Recommended):</h4>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+                    <a href="${updateUrl}?skills=JavaScript,React,Node.js&experienceYears=3&currentPosition=Software Engineer&currentCompany=Tech Corp&currentLocation=Mumbai, India&preferredLocation=Remote" 
+                       style="background: #10b981; color: white; padding: 10px 16px; text-decoration: none; border-radius: 6px; font-size: 14px; display: inline-block;">
+                        Frontend Developer
+                    </a>
+                    <a href="${updateUrl}?skills=Python,Django,PostgreSQL&experienceYears=4&currentPosition=Backend Developer&currentCompany=Tech Corp&currentLocation=Mumbai, India&preferredLocation=Remote" 
+                       style="background: #3b82f6; color: white; padding: 10px 16px; text-decoration: none; border-radius: 6px; font-size: 14px; display: inline-block;">
+                        Backend Developer
+                    </a>
+                    <a href="${updateUrl}?skills=JavaScript,React,Node.js,Python&experienceYears=5&currentPosition=Full Stack Developer&currentCompany=Tech Corp&currentLocation=Mumbai, India&preferredLocation=Remote" 
+                       style="background: #8b5cf6; color: white; padding: 10px 16px; text-decoration: none; border-radius: 6px; font-size: 14px; display: inline-block;">
+                        Full Stack Developer
+                    </a>
+                    <a href="${updateUrl}?skills=Java,Spring Boot,Microservices&experienceYears=6&currentPosition=Senior Developer&currentCompany=Tech Corp&currentLocation=Mumbai, India&preferredLocation=Remote" 
+                       style="background: #f59e0b; color: white; padding: 10px 16px; text-decoration: none; border-radius: 6px; font-size: 14px; display: inline-block;">
+                        Senior Developer
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Manual Form (for email clients that support it) -->
+            <div style="border: 2px dashed #d1d5db; padding: 20px; border-radius: 8px; background: #f9fafb;">
+                <h4 style="margin-bottom: 15px; color: #374151;">📝 Manual Form (if supported by your email client):</h4>
+                <form method="post" action="${process.env.BACKEND_URL || 'http://localhost:5000'}/api/users/profile/update-from-email" target="_blank" style="margin: 0;">
+                    <input type="hidden" name="token" value="${updateToken}" />
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #374151;">Skills (comma-separated)</label>
+                        <input type="text" name="skills" placeholder="JavaScript, React, Node.js" 
+                               style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box;" />
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #374151;">Years of Experience</label>
+                        <input type="number" name="experienceYears" placeholder="5" 
+                               style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box;" />
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #374151;">Current Position</label>
+                        <input type="text" name="currentPosition" placeholder="Software Engineer" 
+                               style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box;" />
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #374151;">Current Company</label>
+                        <input type="text" name="currentCompany" placeholder="Tech Corp" 
+                               style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box;" />
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #374151;">Current Location</label>
+                        <input type="text" name="currentLocation" placeholder="Mumbai, India" 
+                               style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box;" />
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #374151;">Preferred Location</label>
+                        <input type="text" name="preferredLocation" placeholder="Remote, Bangalore, Pune" 
+                               style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box;" />
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #374151;">Bio/Summary</label>
+                        <textarea name="bio" placeholder="Brief description of your professional background..." 
+                                  style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; min-height: 80px; box-sizing: border-box; resize: vertical;"></textarea>
+                    </div>
+                    
+                    <button type="submit" 
+                            style="background: #10b981; color: white; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; width: 100%;">
+                        💾 Save Profile Updates
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        
+        <a href="${updateUrl}" class="update-button">📄 Complete Your Profile</a>
+        
+        <p>Best regards,<br>Job Portal Team</p>
+        
+        <div class="footer">
+            <p>This is an automated message. Please do not reply to this email.</p>
+            <p>If the form doesn't work, click the "Complete Your Profile" button above.</p>
+        </div>
+    </div>
+</body>
+</html>
+    `.trim();
+
+    // AMP HTML for interactive email clients
+    const ampContent = `
+<!DOCTYPE html>
+<html ⚡4email>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Your Profile</title>
+    <script async src="https://cdn.ampproject.org/v0.js"></script>
+    <style amp4email-boilerplate>body{visibility:hidden}</style>
+    <style amp-custom>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .container { background: #f9f9f9; padding: 30px; border-radius: 10px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .logo { font-size: 24px; font-weight: bold; color: #2563eb; }
+        .progress-bar { background: #e5e7eb; height: 20px; border-radius: 10px; margin: 20px 0; }
+        .progress-fill { background: #2563eb; height: 100%; border-radius: 10px; width: ${user.profileCompletion || 0}%; }
+        .update-button { background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin: 20px 0; }
+        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+        .highlight { background: #fef3c7; border: 1px solid #f59e0b; padding: 15px; border-radius: 8px; margin: 20px 0; }
+        .form-section { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #e5e7eb; }
+        .form-group { margin-bottom: 15px; }
+        .form-label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-input { width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; }
+        .form-textarea { width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; min-height: 80px; }
+        .save-button { background: #10b981; color: white; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">Job Portal</div>
+            <h1>Complete Your Profile</h1>
+        </div>
+        
+        <p>Hello ${user.firstName},</p>
+        
+        <p>Your profile is incomplete and needs to be updated to help recruiters find you better.</p>
+        
+        <div>
+            <p><strong>Your current profile completion:</strong></p>
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+            <p>${user.profileCompletion || 0}% Complete</p>
+        </div>
+        
+        <div class="highlight">
+            <strong>What's missing?</strong><br>
+            • Skills and experience<br>
+            • Resume upload<br>
+            • Professional details<br>
+            • Education information
+        </div>
+        
+        <!-- Interactive Profile Form -->
+        <div class="form-section">
+            <h3>Update Your Profile</h3>
+            <form method="post" action-xhr="${process.env.BACKEND_URL || 'http://localhost:5000'}/api/profile/update-from-email" target="_top">
+                <input type="hidden" name="token" value="${updateToken}" />
+                
+                <div class="form-group">
+                    <label class="form-label" for="skills">Skills (comma-separated)</label>
+                    <input type="text" class="form-input" id="skills" name="skills" placeholder="JavaScript, React, Node.js" />
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="experience">Years of Experience</label>
+                    <input type="number" class="form-input" id="experience" name="experienceYears" placeholder="5" />
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="currentPosition">Current Position</label>
+                    <input type="text" class="form-input" id="currentPosition" name="currentPosition" placeholder="Software Engineer" />
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="currentCompany">Current Company</label>
+                    <input type="text" class="form-input" id="currentCompany" name="currentCompany" placeholder="Tech Corp" />
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="currentLocation">Current Location</label>
+                    <input type="text" class="form-input" id="currentLocation" name="currentLocation" placeholder="San Francisco, CA" />
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="preferredLocation">Preferred Location</label>
+                    <input type="text" class="form-input" id="preferredLocation" name="preferredLocation" placeholder="Remote, New York, CA" />
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="bio">Bio/Summary</label>
+                    <textarea class="form-textarea" id="bio" name="bio" placeholder="Brief description of your professional background..."></textarea>
+                </div>
+                
+                <button type="submit" class="save-button">Save Profile Updates</button>
+            </form>
+        </div>
+        
+        <p>Best regards,<br>Job Portal Team</p>
+        
+        <div class="footer">
+            <p>This is an automated message. Please do not reply to this email.</p>
+        </div>
+    </div>
+</body>
+</html>
+    `.trim();
+
+    const fromEmail = process.env.EMAIL_USER || process.env.BREVO_SMTP_USER;
+    const mailOptions = {
+      from: `"Job Portal" <${fromEmail}>`,
+      to: user.email,
+      subject: subject,
+      text: textContent,
+      html: htmlContent,
+      alternatives: [
+        {
+          contentType: 'text/x-amp-html',
+          content: ampContent
+        }
+      ]
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    logger.info(`Interactive profile completion email sent to ${user.email}. MessageId: ${result.messageId}`);
+    
+    return {
+      success: true,
+      messageId: result.messageId
+    };
+  } catch (error) {
+    logger.error('Failed to send interactive profile completion email:', error);
+    throw new Error('Failed to send interactive profile completion email');
+  }
+};
+
+/**
  * Send weekly profile reminder email
  * @param {Object} user - User object
  * @param {string|{link:string, amp?:string}} linkOrAmp - Profile update link or object with AMP content
@@ -485,5 +827,7 @@ module.exports = {
   sendOtpEmail,
   sendApplicationConfirmation,
   sendRecommendationEmail,
+  sendInteractiveProfileCompletionEmail,
   sendWeeklyProfileReminder
 };
+

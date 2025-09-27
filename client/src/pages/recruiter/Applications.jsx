@@ -6,6 +6,8 @@ import ApplicationFilters from '@/components/recruiter/applications/ApplicationF
 import ApplicationList from '@/components/recruiter/applications/ApplicationList'
 import ApplicationBulkActions from '@/components/recruiter/applications/ApplicationBulkActions'
 import ApplicationDetailsModal from '@/components/recruiter/applications/ApplicationDetailsModal'
+import CandidateDetailsModal from '@/components/recruiter/applications/CandidateDetailsModal'
+import toast from 'react-hot-toast'
 
 export default function Applications() {
   const { 
@@ -21,6 +23,7 @@ export default function Applications() {
   const [selectedApplications, setSelectedApplications] = useState([])
   const [selectedApplication, setSelectedApplication] = useState(null)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
+  const [showCandidateModal, setShowCandidateModal] = useState(false)
   const [filters, setFilters] = useState({
     search: '',
     status: '',
@@ -43,11 +46,13 @@ export default function Applications() {
     try {
       if (filters.jobId) {
         const response = await getJobApplications(filters.jobId, filters)
-        setApplications(response.data?.applicants || [])
+        setApplications(response.data?.data?.applicants || [])
         setPagination({
-          currentPage: response.data?.page || 1,
-          totalPages: Math.ceil((response.data?.total || 0) / (response.data?.limit || 10)),
-          total: response.data?.total || 0
+          currentPage: response.data?.data?.page || 1,
+          totalPages: response.data?.data?.totalPages || 1,
+          total: response.data?.data?.total || 0,
+          hasNextPage: response.data?.data?.hasNextPage || false,
+          hasPrevPage: response.data?.data?.hasPrevPage || false
         })
       } else {
         // If no job selected, get applications from all jobs
@@ -56,11 +61,13 @@ export default function Applications() {
         if (allJobs.length > 0) {
           const firstJobId = allJobs[0]._id
           const response = await getJobApplications(firstJobId, filters)
-          setApplications(response.data?.applicants || [])
+          setApplications(response.data?.data?.applicants || [])
           setPagination({
-            currentPage: response.data?.page || 1,
-            totalPages: Math.ceil((response.data?.total || 0) / (response.data?.limit || 10)),
-            total: response.data?.total || 0
+            currentPage: response.data?.data?.page || 1,
+            totalPages: response.data?.data?.totalPages || 1,
+            total: response.data?.data?.total || 0,
+            hasNextPage: response.data?.data?.hasNextPage || false,
+            hasPrevPage: response.data?.data?.hasPrevPage || false
           })
         } else {
           setApplications([])
@@ -69,6 +76,8 @@ export default function Applications() {
       }
     } catch (err) {
       console.error('Failed to load applications:', err)
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to load applications'
+      toast.error(errorMessage)
     }
   }
 
@@ -78,6 +87,8 @@ export default function Applications() {
       setJobs(response.data.data.jobs)
     } catch (err) {
       console.error('Failed to load jobs:', err)
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to load jobs'
+      toast.error(errorMessage)
     }
   }
 
@@ -120,6 +131,8 @@ export default function Applications() {
       loadApplications()
     } catch (err) {
       console.error('Bulk action failed:', err)
+      const errorMessage = err.response?.data?.message || err.message || 'Bulk action failed'
+      toast.error(errorMessage)
     }
   }
 
@@ -129,12 +142,19 @@ export default function Applications() {
       loadApplications()
     } catch (err) {
       console.error('Failed to update application:', err)
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to update application'
+      toast.error(errorMessage)
     }
   }
 
   const handleViewDetails = (application) => {
     setSelectedApplication(application)
     setShowDetailsModal(true)
+  }
+
+  const handleViewFullProfile = (application) => {
+    setSelectedApplication(application)
+    setShowCandidateModal(true)
   }
 
   const getStatusColor = (status) => {
@@ -237,6 +257,7 @@ export default function Applications() {
                 onSelectAll={handleSelectAll}
                 onApplicationUpdate={handleApplicationUpdate}
                 onViewDetails={handleViewDetails}
+                onViewFullProfile={handleViewFullProfile}
                 pagination={pagination}
                 onPageChange={(page) => setFilters(prev => ({ ...prev, page }))}
               />
@@ -251,6 +272,14 @@ export default function Applications() {
           application={selectedApplication}
           onClose={() => setShowDetailsModal(false)}
           onUpdate={handleApplicationUpdate}
+        />
+      )}
+
+      {/* Candidate Details Modal */}
+      {showCandidateModal && selectedApplication && (
+        <CandidateDetailsModal
+          application={selectedApplication}
+          onClose={() => setShowCandidateModal(false)}
         />
       )}
     </div>

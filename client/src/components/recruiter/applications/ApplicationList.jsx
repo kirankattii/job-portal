@@ -7,7 +7,8 @@ const ApplicationCard = ({
   isSelected, 
   onSelect, 
   onUpdate, 
-  onViewDetails 
+  onViewDetails,
+  onViewFullProfile 
 }) => {
   const [isUpdating, setIsUpdating] = useState(false)
   const [newStatus, setNewStatus] = useState(application.status)
@@ -92,7 +93,7 @@ const ApplicationCard = ({
                     "text-sm font-medium",
                     getMatchScoreColor(application.matchScore)
                   )}>
-                    {application.matchScore}% match
+                    {application.matchScore}% ATS Score
                   </span>
                 )}
               </div>
@@ -101,7 +102,7 @@ const ApplicationCard = ({
                 Applied for <span className="font-medium">{application.job?.title}</span>
               </div>
 
-              <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+              <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400 mb-2">
                 <div className="flex items-center">
                   <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -116,12 +117,93 @@ const ApplicationCard = ({
                 </div>
               </div>
 
+              {/* Candidate Details */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600 dark:text-gray-400">
+                {application.user?.currentPosition && (
+                  <div className="flex items-center">
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2V6" />
+                    </svg>
+                    <span className="font-medium">{application.user.currentPosition}</span>
+                    {application.user.currentCompany && <span> at {application.user.currentCompany}</span>}
+                  </div>
+                )}
+                {application.user?.experienceYears !== undefined && (
+                  <div className="flex items-center">
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>{application.user.experienceYears} years experience</span>
+                  </div>
+                )}
+                {application.user?.currentLocation && (
+                  <div className="flex items-center">
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span>{application.user.currentLocation}</span>
+                  </div>
+                )}
+                {application.user?.phone && (
+                  <div className="flex items-center">
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                    <span>{application.user.phone}</span>
+                  </div>
+                )}
+              </div>
+
               {/* Cover Letter Preview */}
               {application.coverLetter && (
                 <div className="mt-3">
                   <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
                     {application.coverLetter}
                   </p>
+                </div>
+              )}
+
+              {/* Skills */}
+              {application.user?.skills && application.user.skills.length > 0 && (
+                <div className="mt-3">
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Skills:</div>
+                  <div className="flex flex-wrap gap-1">
+                    {application.user.skills.slice(0, 5).map((skill, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200"
+                      >
+                        {skill.name} {skill.level && `(${skill.level})`}
+                      </span>
+                    ))}
+                    {application.user.skills.length > 5 && (
+                      <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                        +{application.user.skills.length - 5} more
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Education */}
+              {application.user?.education && application.user.education.length > 0 && (
+                <div className="mt-3">
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Education:</div>
+                  <div className="space-y-1">
+                    {application.user.education.slice(0, 2).map((edu, index) => (
+                      <div key={index} className="text-xs text-gray-600 dark:text-gray-400">
+                        <span className="font-medium">{edu.degree}</span>
+                        {edu.field && <span> in {edu.field}</span>}
+                        {edu.institution && <span> from {edu.institution}</span>}
+                      </div>
+                    ))}
+                    {application.user.education.length > 2 && (
+                      <div className="text-xs text-gray-500 dark:text-gray-500">
+                        +{application.user.education.length - 2} more
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -174,12 +256,39 @@ const ApplicationCard = ({
                 )}
               </div>
 
+              {/* Download Resume */}
+              {application.resumeUrl && (
+                <Button
+                  onClick={() => window.open(application.resumeUrl, '_blank')}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center space-x-1"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <span>Resume</span>
+                </Button>
+              )}
+
               <Button
                 onClick={() => onViewDetails(application)}
                 variant="outline"
                 size="sm"
               >
                 View Details
+              </Button>
+
+              <Button
+                onClick={() => onViewFullProfile(application)}
+                variant="outline"
+                size="sm"
+                className="flex items-center space-x-1"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span>Full Profile</span>
               </Button>
             </div>
           </div>
@@ -262,6 +371,7 @@ export default function ApplicationList({
   onSelectAll,
   onApplicationUpdate,
   onViewDetails,
+  onViewFullProfile,
   pagination,
   onPageChange
 }) {
@@ -303,6 +413,7 @@ export default function ApplicationList({
             onSelect={onApplicationSelect}
             onUpdate={onApplicationUpdate}
             onViewDetails={onViewDetails}
+            onViewFullProfile={onViewFullProfile}
           />
         ))}
       </div>

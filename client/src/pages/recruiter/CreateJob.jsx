@@ -8,6 +8,7 @@ import JobDetails from '@/components/recruiter/jobs/JobDetails'
 import JobRequirements from '@/components/recruiter/jobs/JobRequirements'
 import JobPreview from '@/components/recruiter/jobs/JobPreview'
 import { cn } from '@/utils/cn'
+import toast from 'react-hot-toast'
 
 const steps = [
   { id: 1, name: 'Basic Info', description: 'Job title and location' },
@@ -59,6 +60,8 @@ export default function CreateJob() {
       })
     } catch (err) {
       console.error('Failed to create job:', err)
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to create job'
+      toast.error(errorMessage)
     }
   }
 

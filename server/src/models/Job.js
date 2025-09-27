@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const jobSchema = new mongoose.Schema({
   recruiter: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Recruiter',
+    ref: 'User',
     required: [true, 'Recruiter is required']
   },
   title: {

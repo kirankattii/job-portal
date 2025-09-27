@@ -112,15 +112,43 @@ async function getApplicantsWithMatchScore(req, res, next) {
       }
 
       enriched.push({
-        applicationId: app._id,
-        userId: app.user?._id,
-        userName: app.user?.fullName || [app.user?.firstName, app.user?.lastName].filter(Boolean).join(' '),
+        _id: app._id,
+        user: {
+          _id: app.user?._id,
+          firstName: app.user?.firstName,
+          lastName: app.user?.lastName,
+          email: app.user?.email,
+          phone: app.user?.phone,
+          currentPosition: app.user?.currentPosition,
+          currentCompany: app.user?.currentCompany,
+          currentLocation: app.user?.currentLocation,
+          experienceYears: app.user?.experienceYears,
+          skills: app.user?.skills || [],
+          education: app.user?.education || [],
+          experience: app.user?.experience || [],
+          resumeUrl: app.user?.resumeUrl,
+          avatar: app.user?.avatar,
+          bio: app.user?.bio
+        },
+        job: {
+          _id: job._id,
+          title: job.title,
+          location: job.location,
+          company: job.company,
+          requiredSkills: job.requiredSkills || [],
+          experienceMin: job.experienceMin,
+          experienceMax: job.experienceMax,
+          salaryRange: job.salaryRange,
+          remote: job.remote
+        },
         matchScore,
         matchedDetails,
         matchedSkills,
         missingSkills,
         status: app.status,
-        appliedAt: app.appliedAt
+        appliedAt: app.appliedAt,
+        coverLetter: app.coverLetter,
+        resumeUrl: app.resumeUrl
       });
     }
 
@@ -138,12 +166,15 @@ async function getApplicantsWithMatchScore(req, res, next) {
 
     return res.json({
       success: true,
-      total,
-      page,
-      limit,
-      sortBy: sortField,
-      order: sortOrder === 1 ? 'asc' : 'desc',
-      applicants: paged
+      data: {
+        applicants: paged,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+        hasNextPage: page < Math.ceil(total / limit),
+        hasPrevPage: page > 1
+      }
     });
   } catch (error) {
     next(error);

@@ -172,6 +172,11 @@ apiClient.interceptors.response.use(
       toast.error('An unexpected error occurred')
     }
 
+    // Apply retry logic if configured
+    if (config.retry && config.retryCount < config.retry) {
+      return retryRequest(error)
+    }
+
     return Promise.reject(error)
   }
 )
@@ -198,11 +203,7 @@ const retryRequest = async (error) => {
   return apiClient(config)
 }
 
-// Add retry logic to response interceptor
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => retryRequest(error)
-)
+// Retry logic is already handled in the main response interceptor above
 
 // API methods
 export const api = {

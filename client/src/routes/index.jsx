@@ -55,6 +55,9 @@ const About = lazy(() => import('@/pages/About'))
 const NotFound = lazy(() => import('@/pages/NotFound'))
 const Unauthorized = lazy(() => import('@/pages/Unauthorized'))
 
+// Profile update page (public, token-based)
+const ProfileUpdate = lazy(() => import('@/pages/ProfileUpdate'))
+
 // Loading component for Suspense
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-screen">
@@ -106,6 +109,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<PageLoader />}>
             <About />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'profile/update/:token',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <ProfileUpdate />
           </Suspense>
         ),
       },

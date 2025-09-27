@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Button } from '@/components/ui/Button'
-import { InputField } from '@/components/forms/InputField'
+import InputField from '@/components/forms/InputField'
 import { cn } from '@/utils/cn'
 
 export default function JobBasicInfo({ data, updateData, onNext }) {

@@ -84,12 +84,53 @@ export default function ApplicationDetailsModal({ application, onClose, onUpdate
               {/* Candidate Info */}
               <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
                 <div className="flex items-start justify-between">
-                  <div>
+                  <div className="flex-1">
                     <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
                       {application.user?.firstName} {application.user?.lastName}
                     </h4>
                     <p className="text-gray-600 dark:text-gray-400">{application.user?.email}</p>
-                    <div className="flex items-center space-x-4 mt-2">
+                    
+                    {/* Candidate Details */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-3 text-sm">
+                      {application.user?.currentPosition && (
+                        <div className="flex items-center">
+                          <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2V6" />
+                          </svg>
+                          <span className="text-gray-600 dark:text-gray-400">
+                            <span className="font-medium">{application.user.currentPosition}</span>
+                            {application.user.currentCompany && <span> at {application.user.currentCompany}</span>}
+                          </span>
+                        </div>
+                      )}
+                      {application.user?.experienceYears !== undefined && (
+                        <div className="flex items-center">
+                          <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span className="text-gray-600 dark:text-gray-400">{application.user.experienceYears} years experience</span>
+                        </div>
+                      )}
+                      {application.user?.currentLocation && (
+                        <div className="flex items-center">
+                          <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          <span className="text-gray-600 dark:text-gray-400">{application.user.currentLocation}</span>
+                        </div>
+                      )}
+                      {application.user?.phone && (
+                        <div className="flex items-center">
+                          <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                          </svg>
+                          <span className="text-gray-600 dark:text-gray-400">{application.user.phone}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center space-x-4 mt-3">
                       <span className={cn(
                         "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium",
                         getStatusColor(application.status)
@@ -101,12 +142,12 @@ export default function ApplicationDetailsModal({ application, onClose, onUpdate
                           "text-sm font-medium",
                           getMatchScoreColor(application.matchScore)
                         )}>
-                          {application.matchScore}% match
+                          {application.matchScore}% ATS Score
                         </span>
                       )}
                     </div>
                   </div>
-                  <div className="text-right text-sm text-gray-500 dark:text-gray-400">
+                  <div className="text-right text-sm text-gray-500 dark:text-gray-400 ml-4">
                     <p>Applied on</p>
                     <p>{formatDate(application.appliedAt)}</p>
                   </div>
@@ -138,6 +179,97 @@ export default function ApplicationDetailsModal({ application, onClose, onUpdate
                     <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
                       {application.coverLetter}
                     </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Skills */}
+              {application.user?.skills && application.user.skills.length > 0 && (
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                    Candidate Skills
+                  </h4>
+                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                    <div className="flex flex-wrap gap-2">
+                      {application.user.skills.map((skill, index) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200"
+                        >
+                          {skill.name} {skill.level && `(${skill.level})`}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Education */}
+              {application.user?.education && application.user.education.length > 0 && (
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                    Education
+                  </h4>
+                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                    <div className="space-y-3">
+                      {application.user.education.map((edu, index) => (
+                        <div key={index} className="border-l-4 border-blue-200 dark:border-blue-800 pl-4">
+                          <div className="font-medium text-gray-900 dark:text-white">
+                            {edu.degree} {edu.field && `in ${edu.field}`}
+                          </div>
+                          {edu.institution && (
+                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                              {edu.institution}
+                            </div>
+                          )}
+                          {edu.startDate && edu.endDate && (
+                            <div className="text-xs text-gray-500 dark:text-gray-500">
+                              {new Date(edu.startDate).getFullYear()} - {edu.current ? 'Present' : new Date(edu.endDate).getFullYear()}
+                            </div>
+                          )}
+                          {edu.description && (
+                            <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                              {edu.description}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Experience */}
+              {application.user?.experience && application.user.experience.length > 0 && (
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                    Work Experience
+                  </h4>
+                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                    <div className="space-y-3">
+                      {application.user.experience.map((exp, index) => (
+                        <div key={index} className="border-l-4 border-green-200 dark:border-green-800 pl-4">
+                          <div className="font-medium text-gray-900 dark:text-white">
+                            {exp.title}
+                          </div>
+                          {exp.company && (
+                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                              {exp.company} {exp.location && `• ${exp.location}`}
+                            </div>
+                          )}
+                          {exp.startDate && exp.endDate && (
+                            <div className="text-xs text-gray-500 dark:text-gray-500">
+                              {new Date(exp.startDate).getFullYear()} - {exp.current ? 'Present' : new Date(exp.endDate).getFullYear()}
+                            </div>
+                          )}
+                          {exp.description && (
+                            <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                              {exp.description}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}
@@ -257,19 +389,37 @@ export default function ApplicationDetailsModal({ application, onClose, onUpdate
           </div>
 
           {/* Footer */}
-          <div className="bg-gray-50 dark:bg-gray-700/50 px-6 py-4 flex justify-end space-x-3">
-            <Button
-              onClick={onClose}
-              variant="outline"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleUpdate}
-              disabled={isUpdating}
-            >
-              {isUpdating ? 'Updating...' : 'Update Application'}
-            </Button>
+          <div className="bg-gray-50 dark:bg-gray-700/50 px-6 py-4 flex justify-between items-center">
+            <div className="flex space-x-3">
+              {/* Download Resume */}
+              {application.resumeUrl && (
+                <Button
+                  onClick={() => window.open(application.resumeUrl, '_blank')}
+                  variant="outline"
+                  className="flex items-center space-x-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <span>Download Resume</span>
+                </Button>
+              )}
+            </div>
+            
+            <div className="flex space-x-3">
+              <Button
+                onClick={onClose}
+                variant="outline"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleUpdate}
+                disabled={isUpdating}
+              >
+                {isUpdating ? 'Updating...' : 'Update Application'}
+              </Button>
+            </div>
           </div>
         </div>
       </div>

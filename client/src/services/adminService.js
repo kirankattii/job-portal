@@ -45,14 +45,41 @@ export const adminService = {
     api.get(`${base}/reports`, { params, ...createRequestConfig() }).then(r => r.data),
 
   // Bulk operations
-  bulkUpdateUserStatus: (userIds, status) =>
-    Promise.all(userIds.map(id => adminService.updateUserStatus(id, { isActive: status }))),
+  bulkUpdateUserStatus: async (userIds, status) => {
+    try {
+      const results = await Promise.allSettled(
+        userIds.map(id => adminService.updateUserStatus(id, { isActive: status }))
+      )
+      return results
+    } catch (error) {
+      console.error('Bulk update user status failed:', error)
+      throw error
+    }
+  },
 
-  bulkDeleteUsers: (userIds, reason) =>
-    Promise.all(userIds.map(id => adminService.deleteUser(id, reason))),
+  bulkDeleteUsers: async (userIds, reason) => {
+    try {
+      const results = await Promise.allSettled(
+        userIds.map(id => adminService.deleteUser(id, reason))
+      )
+      return results
+    } catch (error) {
+      console.error('Bulk delete users failed:', error)
+      throw error
+    }
+  },
 
-  bulkUpdateUserRoles: (userIds, role) =>
-    Promise.all(userIds.map(id => adminService.updateUserRole(id, role))),
+  bulkUpdateUserRoles: async (userIds, role) => {
+    try {
+      const results = await Promise.allSettled(
+        userIds.map(id => adminService.updateUserRole(id, role))
+      )
+      return results
+    } catch (error) {
+      console.error('Bulk update user roles failed:', error)
+      throw error
+    }
+  },
 
   // Advanced analytics
   getSystemHealth: () =>
@@ -73,12 +100,14 @@ export const adminService = {
     api.post(`${base}/notifications`, notification, createRequestConfig()).then(r => r.data),
 
   // Data export
-  exportData: (type, format = 'csv', params = {}) =>
-    api.get(`${base}/export/${type}`, { 
-      params: { ...params, format }, 
-      responseType: 'blob',
-      ...createRequestConfig() 
-    }).then(response => {
+  exportData: async (type, format = 'csv', params = {}) => {
+    try {
+      const response = await api.get(`${base}/export/${type}`, { 
+        params: { ...params, format }, 
+        responseType: 'blob',
+        ...createRequestConfig() 
+      })
+      
       const blob = new Blob([response.data])
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
@@ -86,7 +115,13 @@ export const adminService = {
       link.download = `${type}_export_${new Date().toISOString().split('T')[0]}.${format}`
       link.click()
       window.URL.revokeObjectURL(url)
-    }),
+      
+      return response
+    } catch (error) {
+      console.error('Data export failed:', error)
+      throw error
+    }
+  },
 }
 
 export default adminService

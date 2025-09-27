@@ -5,7 +5,9 @@ const { asyncHandler } = require('../middleware/errorHandler');
 const { resumeUpload, uploadBufferToCloudinary } = require('../middleware/uploadMulter');
 const { parseResumeFromUrl } = require('../services/resumeParser');
 const User = require('../models/User');
+const ProfileUpdateToken = require('../models/ProfileUpdateToken');
 const { calculateProfileCompletion } = require('../utils/profile');
+const { sendProfileCompletionEmail, checkAndSendProfileCompletionEmails } = require('../services/profileCompletionService');
 const userController = require('../controllers/userController');
 
 // Placeholder user routes - to be implemented with controllers
@@ -414,6 +416,502 @@ router.get('/skills/suggestions', verifyToken, authorize('user'), asyncHandler(a
     res.status(500).json({
       success: false,
       message: 'Failed to fetch skill suggestions',
+      error: error.message
+    });
+  }
+}));
+
+// POST /api/users/profile/update-from-email
+// Handle profile updates from interactive email forms
+router.post('/profile/update-from-email', asyncHandler(async (req, res) => {
+  try {
+    const { token, skills, experienceYears, currentPosition, currentCompany, currentLocation, preferredLocation, bio } = req.body;
+    
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: 'Token is required'
+      });
+    }
+
+    // Verify and use the token
+    const tokenDoc = await ProfileUpdateToken.verifyAndUse(
+      token, 
+      req.ip, 
+      req.get('User-Agent')
+    );
+    
+    if (!tokenDoc) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired token'
+      });
+    }
+
+    const user = tokenDoc.userId;
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Prepare update data
+    const updateData = {};
+    
+    if (skills) {
+      // Parse skills from comma-separated string
+      const skillsArray = skills.split(',').map(skill => ({
+        name: skill.trim(),
+        level: 'Intermediate'
+      })).filter(skill => skill.name.length > 0);
+      
+      if (skillsArray.length > 0) {
+        updateData.skills = skillsArray;
+      }
+    }
+    
+    if (experienceYears !== undefined && experienceYears !== null && experienceYears !== '') {
+      updateData.experienceYears = parseInt(experienceYears);
+    }
+    
+    if (currentPosition) {
+      updateData.currentPosition = currentPosition.trim();
+    }
+    
+    if (currentCompany) {
+      updateData.currentCompany = currentCompany.trim();
+    }
+    
+    if (currentLocation) {
+      updateData.currentLocation = currentLocation.trim();
+    }
+    
+    if (preferredLocation) {
+      updateData.preferredLocation = preferredLocation.trim();
+    }
+    
+    if (bio) {
+      updateData.bio = bio.trim();
+    }
+
+    // Update user profile
+    Object.keys(updateData).forEach(key => {
+      if (updateData[key] !== undefined && updateData[key] !== null) {
+        user[key] = updateData[key];
+      }
+    });
+
+    // Save the user (this will trigger pre-save middleware for profile completion and embeddings)
+    await user.save();
+
+    // Return success response
+    res.json({
+      success: true,
+      message: 'Profile updated successfully from email',
+      data: {
+        user: user.toJSON(),
+        profileCompletion: user.profileCompletion
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update profile from email',
+      error: error.message
+    });
+  }
+}));
+
+// POST /api/users/profile/send-completion-email
+// Send interactive profile completion email to user
+router.post('/profile/send-completion-email', verifyToken, authorize('user'), asyncHandler(async (req, res) => {
+  try {
+    const userId = req.user._id;
+    
+    // Get user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Send profile completion email using service
+    const result = await sendProfileCompletionEmail(user, 'manual_request');
+
+    res.json({
+      success: result.success,
+      message: result.message,
+      data: {
+        profileCompletion: result.profileCompletion,
+        missingFields: result.missingFields,
+        token: result.token // For testing purposes
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to send profile completion email',
+      error: error.message
+    });
+  }
+}));
+
+// POST /api/users/profile/check-incomplete-profiles
+// Admin endpoint to check and send emails to users with incomplete profiles
+router.post('/profile/check-incomplete-profiles', verifyToken, authorize('admin'), asyncHandler(async (req, res) => {
+  try {
+    const { threshold = 70, limit = 100, daysSinceLastUpdate = 7 } = req.body;
+    
+    const result = await checkAndSendProfileCompletionEmails({
+      threshold,
+      limit,
+      daysSinceLastUpdate
+    });
+
+    res.json({
+      success: true,
+      message: 'Profile completion check completed',
+      data: result
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to check incomplete profiles',
+      error: error.message
+    });
+  }
+}));
+
+module.exports = router;
+
+// POST /api/users/profile/update-from-email
+// Handle profile updates from interactive email forms
+router.post('/profile/update-from-email', asyncHandler(async (req, res) => {
+  try {
+    const { token, skills, experienceYears, currentPosition, currentCompany, currentLocation, preferredLocation, bio } = req.body;
+    
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: 'Token is required'
+      });
+    }
+
+    // Verify and use the token
+    const tokenDoc = await ProfileUpdateToken.verifyAndUse(
+      token, 
+      req.ip, 
+      req.get('User-Agent')
+    );
+    
+    if (!tokenDoc) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired token'
+      });
+    }
+
+    const user = tokenDoc.userId;
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Prepare update data
+    const updateData = {};
+    
+    if (skills) {
+      // Parse skills from comma-separated string
+      const skillsArray = skills.split(',').map(skill => ({
+        name: skill.trim(),
+        level: 'Intermediate'
+      })).filter(skill => skill.name.length > 0);
+      
+      if (skillsArray.length > 0) {
+        updateData.skills = skillsArray;
+      }
+    }
+    
+    if (experienceYears !== undefined && experienceYears !== null && experienceYears !== '') {
+      updateData.experienceYears = parseInt(experienceYears);
+    }
+    
+    if (currentPosition) {
+      updateData.currentPosition = currentPosition.trim();
+    }
+    
+    if (currentCompany) {
+      updateData.currentCompany = currentCompany.trim();
+    }
+    
+    if (currentLocation) {
+      updateData.currentLocation = currentLocation.trim();
+    }
+    
+    if (preferredLocation) {
+      updateData.preferredLocation = preferredLocation.trim();
+    }
+    
+    if (bio) {
+      updateData.bio = bio.trim();
+    }
+
+    // Update user profile
+    Object.keys(updateData).forEach(key => {
+      if (updateData[key] !== undefined && updateData[key] !== null) {
+        user[key] = updateData[key];
+      }
+    });
+
+    // Save the user (this will trigger pre-save middleware for profile completion and embeddings)
+    await user.save();
+
+    // Return success response
+    res.json({
+      success: true,
+      message: 'Profile updated successfully from email',
+      data: {
+        user: user.toJSON(),
+        profileCompletion: user.profileCompletion
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update profile from email',
+      error: error.message
+    });
+  }
+}));
+
+// POST /api/users/profile/send-completion-email
+// Send interactive profile completion email to user
+router.post('/profile/send-completion-email', verifyToken, authorize('user'), asyncHandler(async (req, res) => {
+  try {
+    const userId = req.user._id;
+    
+    // Get user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Send profile completion email using service
+    const result = await sendProfileCompletionEmail(user, 'manual_request');
+
+    res.json({
+      success: result.success,
+      message: result.message,
+      data: {
+        profileCompletion: result.profileCompletion,
+        missingFields: result.missingFields,
+        token: result.token // For testing purposes
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to send profile completion email',
+      error: error.message
+    });
+  }
+}));
+
+// POST /api/users/profile/check-incomplete-profiles
+// Admin endpoint to check and send emails to users with incomplete profiles
+router.post('/profile/check-incomplete-profiles', verifyToken, authorize('admin'), asyncHandler(async (req, res) => {
+  try {
+    const { threshold = 70, limit = 100, daysSinceLastUpdate = 7 } = req.body;
+    
+    const result = await checkAndSendProfileCompletionEmails({
+      threshold,
+      limit,
+      daysSinceLastUpdate
+    });
+
+    res.json({
+      success: true,
+      message: 'Profile completion check completed',
+      data: result
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to check incomplete profiles',
+      error: error.message
+    });
+  }
+}));
+
+module.exports = router;
+
+// POST /api/users/profile/update-from-email
+// Handle profile updates from interactive email forms
+router.post('/profile/update-from-email', asyncHandler(async (req, res) => {
+  try {
+    const { token, skills, experienceYears, currentPosition, currentCompany, currentLocation, preferredLocation, bio } = req.body;
+    
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: 'Token is required'
+      });
+    }
+
+    // Verify and use the token
+    const tokenDoc = await ProfileUpdateToken.verifyAndUse(
+      token, 
+      req.ip, 
+      req.get('User-Agent')
+    );
+    
+    if (!tokenDoc) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired token'
+      });
+    }
+
+    const user = tokenDoc.userId;
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Prepare update data
+    const updateData = {};
+    
+    if (skills) {
+      // Parse skills from comma-separated string
+      const skillsArray = skills.split(',').map(skill => ({
+        name: skill.trim(),
+        level: 'Intermediate'
+      })).filter(skill => skill.name.length > 0);
+      
+      if (skillsArray.length > 0) {
+        updateData.skills = skillsArray;
+      }
+    }
+    
+    if (experienceYears !== undefined && experienceYears !== null && experienceYears !== '') {
+      updateData.experienceYears = parseInt(experienceYears);
+    }
+    
+    if (currentPosition) {
+      updateData.currentPosition = currentPosition.trim();
+    }
+    
+    if (currentCompany) {
+      updateData.currentCompany = currentCompany.trim();
+    }
+    
+    if (currentLocation) {
+      updateData.currentLocation = currentLocation.trim();
+    }
+    
+    if (preferredLocation) {
+      updateData.preferredLocation = preferredLocation.trim();
+    }
+    
+    if (bio) {
+      updateData.bio = bio.trim();
+    }
+
+    // Update user profile
+    Object.keys(updateData).forEach(key => {
+      if (updateData[key] !== undefined && updateData[key] !== null) {
+        user[key] = updateData[key];
+      }
+    });
+
+    // Save the user (this will trigger pre-save middleware for profile completion and embeddings)
+    await user.save();
+
+    // Return success response
+    res.json({
+      success: true,
+      message: 'Profile updated successfully from email',
+      data: {
+        user: user.toJSON(),
+        profileCompletion: user.profileCompletion
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update profile from email',
+      error: error.message
+    });
+  }
+}));
+
+// POST /api/users/profile/send-completion-email
+// Send interactive profile completion email to user
+router.post('/profile/send-completion-email', verifyToken, authorize('user'), asyncHandler(async (req, res) => {
+  try {
+    const userId = req.user._id;
+    
+    // Get user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Send profile completion email using service
+    const result = await sendProfileCompletionEmail(user, 'manual_request');
+
+    res.json({
+      success: result.success,
+      message: result.message,
+      data: {
+        profileCompletion: result.profileCompletion,
+        missingFields: result.missingFields,
+        token: result.token // For testing purposes
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to send profile completion email',
+      error: error.message
+    });
+  }
+}));
+
+// POST /api/users/profile/check-incomplete-profiles
+// Admin endpoint to check and send emails to users with incomplete profiles
+router.post('/profile/check-incomplete-profiles', verifyToken, authorize('admin'), asyncHandler(async (req, res) => {
+  try {
+    const { threshold = 70, limit = 100, daysSinceLastUpdate = 7 } = req.body;
+    
+    const result = await checkAndSendProfileCompletionEmails({
+      threshold,
+      limit,
+      daysSinceLastUpdate
+    });
+
+    res.json({
+      success: true,
+      message: 'Profile completion check completed',
+      data: result
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to check incomplete profiles',
       error: error.message
     });
   }

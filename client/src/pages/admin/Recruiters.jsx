@@ -23,8 +23,10 @@ export default function AdminRecruiters() {
       })
       setRecruiters(res.data.recruiters)
       setPagination(res.data.pagination)
-    } catch (e) {
-      toast.error('Failed to load recruiters')
+    } catch (error) {
+      console.error('Failed to load recruiters:', error)
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to load recruiters'
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -37,8 +39,10 @@ export default function AdminRecruiters() {
       await adminService.verifyRecruiter(rec._id, { verified: !rec.isVerified })
       toast.success(`Recruiter ${!rec.isVerified ? 'verified' : 'unverified'}`)
       fetchRecruiters()
-    } catch {
-      toast.error('Failed to update verification')
+    } catch (error) {
+      console.error('Failed to update verification:', error)
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to update verification'
+      toast.error(errorMessage)
     }
   }
 

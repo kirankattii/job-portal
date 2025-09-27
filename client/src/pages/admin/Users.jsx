@@ -26,8 +26,10 @@ export default function AdminUsers() {
       })
       setUsers(res.data.users)
       setPagination(res.data.pagination)
-    } catch (e) {
-      toast.error('Failed to load users')
+    } catch (error) {
+      console.error('Failed to load users:', error)
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to load users'
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -54,8 +56,10 @@ export default function AdminUsers() {
       toast.success('Selected users deactivated')
       setSelected(new Set())
       fetchUsers()
-    } catch {
-      toast.error('Bulk operation failed')
+    } catch (error) {
+      console.error('Bulk deactivate failed:', error)
+      const errorMessage = error.response?.data?.message || error.message || 'Bulk deactivation failed'
+      toast.error(errorMessage)
     }
   }
 
@@ -66,8 +70,10 @@ export default function AdminUsers() {
       toast.success('Selected users activated')
       setSelected(new Set())
       fetchUsers()
-    } catch {
-      toast.error('Bulk operation failed')
+    } catch (error) {
+      console.error('Bulk activate failed:', error)
+      const errorMessage = error.response?.data?.message || error.message || 'Bulk activation failed'
+      toast.error(errorMessage)
     }
   }
 
@@ -79,8 +85,10 @@ export default function AdminUsers() {
       toast.success('Selected users deleted')
       setSelected(new Set())
       fetchUsers()
-    } catch {
-      toast.error('Bulk deletion failed')
+    } catch (error) {
+      console.error('Bulk delete failed:', error)
+      const errorMessage = error.response?.data?.message || error.message || 'Bulk deletion failed'
+      toast.error(errorMessage)
     }
   }
 
@@ -169,10 +177,52 @@ export default function AdminUsers() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-2">
-                        <button className="px-3 py-1.5 rounded bg-gray-100 dark:bg-gray-700" onClick={async ()=>{ const details = await adminService.getUser(u._id); setDetailsUser(details.data); setDetailsOpen(true) }}>Details</button>
-                        <button className="px-3 py-1.5 rounded bg-blue-600 text-white" onClick={async ()=>{ await adminService.updateUserStatus(u._id, { isActive: !u.isActive }); toast.success('Status updated'); fetchUsers() }}>Toggle Status</button>
-                        <button className="px-3 py-1.5 rounded bg-purple-600 text-white" onClick={async ()=>{ const next = u.role==='user' ? 'recruiter' : 'user'; await adminService.updateUserRole(u._id, next); toast.success('Role updated'); fetchUsers() }}>Toggle Role</button>
-                        <button className="px-3 py-1.5 rounded bg-red-600 text-white" onClick={async ()=>{ if (confirm('Delete user?')) { await adminService.deleteUser(u._id); toast.success('User deleted'); fetchUsers() } }}>Delete</button>
+                        <button className="px-3 py-1.5 rounded bg-gray-100 dark:bg-gray-700" onClick={async ()=>{ 
+                          try {
+                            const details = await adminService.getUser(u._id)
+                            setDetailsUser(details.data)
+                            setDetailsOpen(true)
+                          } catch (error) {
+                            console.error('Failed to get user details:', error)
+                            toast.error('Failed to load user details')
+                          }
+                        }}>Details</button>
+                        <button className="px-3 py-1.5 rounded bg-blue-600 text-white" onClick={async ()=>{ 
+                          try {
+                            await adminService.updateUserStatus(u._id, { isActive: !u.isActive })
+                            toast.success('Status updated')
+                            fetchUsers()
+                          } catch (error) {
+                            console.error('Failed to update user status:', error)
+                            const errorMessage = error.response?.data?.message || error.message || 'Failed to update user status'
+                            toast.error(errorMessage)
+                          }
+                        }}>Toggle Status</button>
+                        <button className="px-3 py-1.5 rounded bg-purple-600 text-white" onClick={async ()=>{ 
+                          try {
+                            const next = u.role==='user' ? 'recruiter' : 'user'
+                            await adminService.updateUserRole(u._id, next)
+                            toast.success('Role updated')
+                            fetchUsers()
+                          } catch (error) {
+                            console.error('Failed to update user role:', error)
+                            const errorMessage = error.response?.data?.message || error.message || 'Failed to update user role'
+                            toast.error(errorMessage)
+                          }
+                        }}>Toggle Role</button>
+                        <button className="px-3 py-1.5 rounded bg-red-600 text-white" onClick={async ()=>{ 
+                          if (confirm('Delete user?')) { 
+                            try {
+                              await adminService.deleteUser(u._id)
+                              toast.success('User deleted')
+                              fetchUsers()
+                            } catch (error) {
+                              console.error('Failed to delete user:', error)
+                              const errorMessage = error.response?.data?.message || error.message || 'Failed to delete user'
+                              toast.error(errorMessage)
+                            }
+                          }
+                        }}>Delete</button>
                       </div>
                     </td>
                   </tr>

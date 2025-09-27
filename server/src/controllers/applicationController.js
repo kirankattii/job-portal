@@ -76,13 +76,28 @@ async function applyToJob(req, res) {
     // Prepare email job object with company name if available
     let recruiter = null;
     try {
-      recruiter = await Recruiter.findById(job.recruiter);
+      // First try to find in User model (new structure)
+      const User = require('../models/User');
+      recruiter = await User.findById(job.recruiter);
+      if (!recruiter) {
+        // Fallback to old Recruiter model
+        recruiter = await Recruiter.findById(job.recruiter);
+      }
     } catch (_) {}
+    
+    const companyName = recruiter?.company?.name || recruiter?.companyName || 'Company';
+    
     const jobForEmail = {
       _id: job._id,
       title: job.title,
+      description: job.description,
       location: job.location,
-      company: recruiter && recruiter.companyName ? recruiter.companyName : 'Company',
+      company: companyName,
+      requiredSkills: job.requiredSkills || [],
+      experienceMin: job.experienceMin,
+      experienceMax: job.experienceMax,
+      salaryRange: job.salaryRange,
+      remote: job.remote,
       recruiter: job.recruiter
     };
 

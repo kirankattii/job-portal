@@ -11,6 +11,7 @@ const ApplicationCard = ({
   onBulkSelect,
   onUpdate, 
   onViewDetails,
+  onViewFullProfile,
   compact = false
 }) => {
   const [isUpdating, setIsUpdating] = useState(false)
@@ -117,7 +118,7 @@ const ApplicationCard = ({
                     "text-xs font-medium",
                     getMatchScoreColor(application.matchScore)
                   )}>
-                    {application.matchScore}% match
+                    {application.matchScore}% ATS Score
                   </span>
                 )}
                 {getEvaluationBadge(application.evaluation)}
@@ -208,6 +209,34 @@ const ApplicationCard = ({
                   </Button>
                 )}
               </div>
+
+              {/* Download Resume */}
+              {application.resumeUrl && (
+                <Button
+                  onClick={() => window.open(application.resumeUrl, '_blank')}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center space-x-1"
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <span className="hidden sm:inline">Resume</span>
+                </Button>
+              )}
+
+              {/* View Full Profile */}
+              <Button
+                onClick={() => onViewFullProfile(application)}
+                variant="outline"
+                size="sm"
+                className="flex items-center space-x-1"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span className="hidden sm:inline">Profile</span>
+              </Button>
             </div>
           </div>
         </div>
@@ -291,6 +320,7 @@ export default function EnhancedApplicationList({
   onSelectAll,
   onApplicationUpdate,
   onViewDetails,
+  onViewFullProfile,
   pagination,
   onPageChange,
   isLoading = false,
@@ -358,6 +388,7 @@ export default function EnhancedApplicationList({
             onBulkSelect={onBulkSelect}
             onUpdate={onApplicationUpdate}
             onViewDetails={onViewDetails}
+            onViewFullProfile={onViewFullProfile}
             compact={compact}
           />
         ))}

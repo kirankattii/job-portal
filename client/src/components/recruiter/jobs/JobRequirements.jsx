@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
-import { InputField } from '@/components/forms/InputField'
+import InputField from '@/components/forms/InputField'
 import { recruiterService } from '@/services/recruiterService'
 import { cn } from '@/utils/cn'
 

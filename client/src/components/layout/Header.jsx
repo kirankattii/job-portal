@@ -62,12 +62,7 @@ const Header = () => {
             >
               Find Jobs
             </Link>
-            <Link
-              to="/companies"
-              className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-            >
-              Companies
-            </Link>
+           
             <Link
               to="/about"
               className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"

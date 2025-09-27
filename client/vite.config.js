@@ -8,8 +8,6 @@ export default defineConfig({
     react({
       // Enable fast refresh
       fastRefresh: true,
-      // Enable JSX runtime
-      jsxRuntime: 'automatic',
     }),
   ],
   server: {
@@ -155,15 +153,5 @@ export default defineConfig({
       'react-hot-toast',
       'zustand',
     ],
-  },
-  // Experimental features
-  experimental: {
-    renderBuiltUrl(filename, { hostType }) {
-      if (hostType === 'js') {
-        return { js: `/${filename}` };
-      } else {
-        return { relative: true };
-      }
-    },
   },
 })

@@ -7,6 +7,7 @@ import JobFilters from '@/components/recruiter/jobs/JobFilters'
 import JobList from '@/components/recruiter/jobs/JobList'
 import JobBulkActions from '@/components/recruiter/jobs/JobBulkActions'
 import { cn } from '@/utils/cn'
+import toast from 'react-hot-toast'
 
 export default function RecruiterJobs() {
   const navigate = useNavigate()
@@ -14,6 +15,7 @@ export default function RecruiterJobs() {
     loading, 
     error, 
     getJobs, 
+    createJob,
     updateJob, 
     deleteJob, 
     bulkUpdateJobs, 
@@ -44,6 +46,8 @@ export default function RecruiterJobs() {
       setPagination(response.data.data.pagination)
     } catch (err) {
       console.error('Failed to load jobs:', err)
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to load jobs'
+      toast.error(errorMessage)
     }
   }
 
@@ -92,6 +96,8 @@ export default function RecruiterJobs() {
       loadJobs()
     } catch (err) {
       console.error('Bulk action failed:', err)
+      const errorMessage = err.response?.data?.message || err.message || 'Bulk action failed'
+      toast.error(errorMessage)
     }
   }
 
@@ -101,6 +107,8 @@ export default function RecruiterJobs() {
       loadJobs()
     } catch (err) {
       console.error('Failed to update job:', err)
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to update job'
+      toast.error(errorMessage)
     }
   }
 
@@ -111,6 +119,8 @@ export default function RecruiterJobs() {
         loadJobs()
       } catch (err) {
         console.error('Failed to delete job:', err)
+        const errorMessage = err.response?.data?.message || err.message || 'Failed to delete job'
+        toast.error(errorMessage)
       }
     }
   }
@@ -126,6 +136,8 @@ export default function RecruiterJobs() {
       }
     } catch (err) {
       console.error('Failed to duplicate job:', err)
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to duplicate job'
+      toast.error(errorMessage)
     }
   }
 

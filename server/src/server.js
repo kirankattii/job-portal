@@ -16,6 +16,7 @@ const routes = require('./routes');
 require('./jobs/profileReminderCron');
 require('./jobs/atsRecommendationCron');
 require('./jobs/reportSchedulerCron');
+require('./jobs/profileCompletionCron');
 
 // Initialize Express app
 const app = express();
@@ -100,3 +101,5 @@ process.on('SIGINT', () => {
 });
 
 module.exports = app;
+
+
