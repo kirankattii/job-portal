@@ -41,9 +41,10 @@ const allowedOrigins = [
   'http://127.0.0.1:3000',
   'http://127.0.0.1:5173',
   'http://127.0.0.1:4173',
+  'https://job-portal-frontend-pearl.vercel.app',
   'https://job-portal-git-main-kiran-kattis-projects.vercel.app',
   'https://job-portal-git-main-kiran-kattis-projects.vercel.app/',
-  process.env.FRONTEND_URL || 'https://job-app-client.vercel.app',
+  process.env.FRONTEND_URL || 'https://job-portal-frontend-pearl.vercel.app',
   process.env.CLIENT_URL,
   ...corsOriginsFromEnv
 ].filter(Boolean);
