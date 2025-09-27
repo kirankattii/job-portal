@@ -46,21 +46,6 @@ const sendUpdatedEmail = async () => {
     console.log('✅ Updated email sent successfully!');
     console.log('📧 Message ID:', result.messageId);
     
-    console.log('\n📋 Email Features:');
-    console.log('   ✅ HTML form embedded in email');
-    console.log('   ✅ Quick update links for common roles');
-    console.log('   ✅ Fallback button to profile page');
-    console.log('   ✅ Works in most email clients');
-    console.log('   ✅ Mobile responsive design');
-    
-    console.log('\n🔗 Links:');
-    console.log('   Profile Update Page: http://localhost:3000/profile/update/' + tokenDoc.token);
-    console.log('   API Endpoint: http://localhost:5000/api/users/profile/update-from-email');
-    
-    console.log('\n🚀 Quick Update Links:');
-    console.log('   Frontend Dev: http://localhost:3000/profile/update/' + tokenDoc.token + '?skills=JavaScript,React,Node.js&experienceYears=3&currentPosition=Software Engineer');
-    console.log('   Backend Dev: http://localhost:3000/profile/update/' + tokenDoc.token + '?skills=Python,Django,PostgreSQL&experienceYears=4&currentPosition=Backend Developer');
-    console.log('   Full Stack: http://localhost:3000/profile/update/' + tokenDoc.token + '?skills=JavaScript,React,Node.js,Python&experienceYears=5&currentPosition=Full Stack Developer');
     
     return tokenDoc.token;
     
