@@ -4,10 +4,17 @@ const logger = require('../utils/logger');
 /**
  * Connect to MongoDB database
  * Uses environment variables for connection string
+ * Optimized for serverless environments
  */
 const connectDB = async () => {
   try {
-    const mongoURI =   process.env.MONGODB_URI;
+    // Check if already connected
+    if (mongoose.connection.readyState === 1) {
+      logger.info('MongoDB already connected');
+      return;
+    }
+
+    const mongoURI = process.env.MONGODB_URI;
 
     if (!mongoURI) {
       throw new Error('MongoDB URI not found in environment variables');
@@ -35,17 +42,31 @@ const connectDB = async () => {
       logger.info('MongoDB reconnected');
     });
 
-    // Graceful shutdown
-    process.on('SIGINT', async () => {
-      await mongoose.connection.close();
-      logger.info('MongoDB connection closed through app termination');
-      process.exit(0);
-    });
+    // Graceful shutdown (only in non-serverless environments)
+    if (process.env.VERCEL !== '1') {
+      process.on('SIGINT', async () => {
+        await mongoose.connection.close();
+        logger.info('MongoDB connection closed through app termination');
+        process.exit(0);
+      });
+    }
 
   } catch (error) {
     logger.error('Database connection failed:', error.message);
-    process.exit(1);
+    if (process.env.VERCEL !== '1') {
+      process.exit(1);
+    }
+    throw error;
   }
 };
 
-module.exports = connectDB;
+/**
+ * Ensure database connection for serverless functions
+ */
+const ensureConnection = async () => {
+  if (mongoose.connection.readyState !== 1) {
+    await connectDB();
+  }
+};
+
+module.exports = { connectDB, ensureConnection };
