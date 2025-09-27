@@ -54,8 +54,11 @@ const register = async (req, res) => {
       });
     }
 
-    // Generate OTP
+    // Generate OTP and create OTP record (this will clean up existing OTPs)
     const otp = Otp.generateOtp();
+    
+    // Delete any existing OTPs for this email and purpose first
+    await Otp.deleteMany({ email: email.toLowerCase(), purpose: 'registration' });
     
     // Create OTP record with the generated OTP
     try {

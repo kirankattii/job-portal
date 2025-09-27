@@ -16,8 +16,7 @@ const otpSchema = new mongoose.Schema({
   },
   expiresAt: {
     type: Date,
-    required: [true, 'Expiration date is required'],
-    index: { expireAfterSeconds: 0 } // TTL index for automatic cleanup
+    required: [true, 'Expiration date is required']
   },
   purpose: {
     type: String,
@@ -40,7 +39,7 @@ const otpSchema = new mongoose.Schema({
 // Indexes
 otpSchema.index({ email: 1 });
 otpSchema.index({ purpose: 1 });
-otpSchema.index({ expiresAt: 1 });
+otpSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 }); // TTL index for automatic cleanup
 otpSchema.index({ email: 1, purpose: 1 });
 otpSchema.index({ createdAt: 1 }, { expireAfterSeconds: 3600 }); // Auto-delete after 1 hour
 
